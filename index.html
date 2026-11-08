@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ôn tập Công nghệ 10 – Giữa kì I (V2)</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#fff; --text:#1f2937; --muted:#6b7280;
+    --line:#e5e7eb; --primary:#2563eb; --primary-dark:#1d4ed8;
+    --green:#16a34a; --green-soft:#ecfdf5;
+    --red:#dc2626; --red-soft:#fef2f2;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:840px;margin:0 auto;padding:26px 16px 70px;}
+
+  header{text-align:center;margin-bottom:20px;}
+  header h1{font-size:22px;margin:0 0 4px;letter-spacing:-.3px;}
+  header p{margin:0;font-size:13.5px;color:var(--muted);}
+
+  .tabs{display:flex;gap:5px;background:#e8ecf3;padding:5px;border-radius:12px;margin-bottom:18px;}
+  .tab{flex:1;border:0;background:transparent;padding:10px 6px;border-radius:9px;
+    font-family:inherit;font-size:13.5px;font-weight:600;color:var(--muted);
+    cursor:pointer;transition:.16s;white-space:nowrap;}
+  .tab:hover{color:#334155;}
+  .tab.active{background:#fff;color:var(--primary);box-shadow:0 1px 3px rgba(16,24,40,.10);}
+
+  .panel{display:none;}
+  .panel.active{display:block;animation:fade .22s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--card);border-radius:var(--radius);padding:20px;
+    box-shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04);
+    margin-bottom:16px;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;
+    font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px;}
+  .topbar .score{color:var(--primary);}
+  .progress{height:6px;background:#eef2f7;border-radius:99px;overflow:hidden;margin-bottom:18px;}
+  .progress .bar{height:100%;width:0;background:linear-gradient(90deg,#3b82f6,#2563eb);
+    border-radius:99px;transition:width .3s ease;}
+
+  .qtext{font-size:16.5px;line-height:1.55;margin:0 0 16px;font-weight:700;color:#111827;}
+  .qnote{font-size:13px;color:#64748b;font-style:italic;margin:-10px 0 14px;
+    padding:7px 11px;background:#f8fafc;border-radius:8px;border-left:3px solid #cbd5e1;line-height:1.5;}
+
+  .option{display:flex;gap:11px;width:100%;text-align:left;align-items:flex-start;
+    padding:12px 14px;margin-bottom:9px;border:1.5px solid var(--line);
+    background:#fff;border-radius:11px;font-family:inherit;font-size:14.5px;
+    color:var(--text);line-height:1.5;cursor:pointer;transition:.14s;}
+  .option:hover:not(.disabled){border-color:#bfdbfe;background:#f8fbff;}
+  .option .letter{flex:0 0 25px;height:25px;border-radius:50%;background:#eef2f7;color:var(--muted);
+    display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;
+    margin-top:1px;transition:.14s;}
+  .option.correct{border-color:var(--green);background:var(--green-soft);}
+  .option.correct .letter{background:var(--green);color:#fff;}
+  .option.wrong{border-color:var(--red);background:var(--red-soft);}
+  .option.wrong .letter{background:var(--red);color:#fff;}
+  .option.disabled{cursor:default;}
+
+  .feedback{display:none;margin-top:14px;padding:12px 14px;border-radius:11px;font-size:14px;line-height:1.55;}
+  .feedback.show{display:block;animation:fade .2s ease;}
+  .feedback.ok{background:var(--green-soft);color:#065f46;border-left:4px solid var(--green);}
+  .feedback.no{background:var(--red-soft);color:#7f1d1d;border-left:4px solid var(--red);}
+  .feedback b{font-weight:700;}
+
+  .actions{display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap;}
+  .btn{border:0;padding:11px 18px;border-radius:10px;font-family:inherit;
+    font-size:14px;font-weight:600;cursor:pointer;transition:.15s;}
+  .btn.primary{background:var(--primary);color:#fff;}
+  .btn.primary:hover{background:var(--primary-dark);}
+  .btn.ghost{background:#f1f5f9;color:#475569;}
+  .btn.ghost:hover{background:#e2e8f0;}
+
+  /* ----- Specs (dữ kiện & thông số) ----- */
+  .spec-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;
+    padding:12px 14px;margin-bottom:16px;}
+  .spec-title{font-size:12.5px;font-weight:700;color:#475569;margin-bottom:8px;
+    text-transform:uppercase;letter-spacing:.3px;}
+  .spec-subtitle{font-size:13px;font-weight:600;color:#334155;margin:8px 0 6px;}
+  .spec-table-wrap{overflow-x:auto;margin-bottom:4px;border-radius:8px;}
+  .spec-table{width:100%;border-collapse:collapse;font-size:13px;min-width:320px;}
+  .spec-table th,.spec-table td{padding:6px 10px;border:1px solid #e2e8f0;text-align:left;}
+  .spec-table th{background:#eef2f7;font-weight:700;color:#334155;}
+  .spec-table td{color:#475569;background:#fff;}
+  .spec-list{margin:0;padding-left:18px;font-size:13px;color:#475569;line-height:1.6;}
+  .spec-list li{margin-bottom:4px;}
+  .spec-list strong{color:#334155;}
+  .spec-note{font-size:13px;color:#64748b;font-style:italic;margin-top:6px;line-height:1.5;}
+
+  .spec-box.compact{padding:8px 10px;margin-bottom:8px;}
+  .spec-box.compact .spec-title{display:none;}
+  .spec-box.compact .spec-subtitle{font-size:12px;margin:4px 0 4px;}
+  .spec-box.compact .spec-table{font-size:12px;min-width:260px;}
+  .spec-box.compact .spec-table th,.spec-box.compact .spec-table td{padding:4px 8px;}
+  .spec-box.compact .spec-list{font-size:12px;padding-left:14px;}
+  .spec-box.compact .spec-note{font-size:12px;}
+
+  /* ----- True / False ----- */
+  .tf-context{background:#f8fafc;border-left:4px solid var(--primary);
+    padding:12px 14px;border-radius:0 10px 10px 0;font-size:14.5px;color:#334155;margin:0 0 14px;}
+  .tf-item{border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;
+    margin-bottom:11px;transition:.18s;background:#fff;}
+  .tf-item.ok{border-color:var(--green);background:var(--green-soft);}
+  .tf-item.no{border-color:var(--red);background:var(--red-soft);}
+  .tf-head{display:flex;gap:9px;align-items:flex-start;}
+  .tf-label{flex:0 0 22px;height:22px;border-radius:6px;background:#eef2f7;color:#64748b;
+    font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px;}
+  .tf-text{font-size:14.5px;line-height:1.55;}
+  .tf-btns{display:flex;gap:8px;margin-top:11px;padding-left:31px;}
+  .tf-btn{padding:7px 20px;border-radius:9px;border:1.5px solid var(--line);
+    background:#fff;color:#475569;font-family:inherit;font-size:13.5px;
+    font-weight:600;cursor:pointer;transition:.14s;}
+  .tf-btn:hover:not(:disabled){border-color:#bfdbfe;background:#f8fbff;}
+  .tf-btn:disabled{cursor:default;}
+  .tf-btn.correct{background:var(--green);border-color:var(--green);color:#fff;}
+  .tf-btn.wrong{background:var(--red);border-color:var(--red);color:#fff;}
+  .tf-btns.locked .tf-btn:not(.correct):not(.wrong){opacity:.38;}
+  .tf-explain{display:none;margin-top:10px;padding:9px 12px;border-radius:9px;
+    background:rgba(255,255,255,.85);font-size:13.5px;color:#374151;line-height:1.55;
+    border:1px dashed #cbd5e1;}
+  .tf-explain.show{display:block;animation:fade .2s ease;}
+  .tf-explain .verdict{font-weight:700;}
+  .tf-explain .verdict.ok{color:var(--green);}
+  .tf-explain .verdict.no{color:var(--red);}
+
+  /* ----- Lookup ----- */
+  .section-title{font-size:14px;font-weight:700;color:var(--primary);
+    text-transform:uppercase;letter-spacing:.5px;margin:0 0 12px;padding-bottom:8px;
+    border-bottom:2px solid #e0e7ff;}
+  .lk-item{padding:9px 0;border-bottom:1px dashed var(--line);}
+  .lk-item:last-child{border-bottom:0;}
+  .lk-q{display:flex;gap:8px;font-size:14px;font-weight:600;color:#334155;line-height:1.5;}
+  .lk-num{flex:0 0 23px;height:23px;border-radius:7px;background:#eef2f7;color:#64748b;
+    font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px;}
+  .lk-note{font-size:12.5px;color:#64748b;font-style:italic;margin:2px 0 4px 31px;line-height:1.4;}
+  .lk-a{margin:6px 0 0 31px;font-size:13.5px;font-weight:600;color:#15803d;
+    background:var(--green-soft);padding:6px 11px;border-radius:8px;line-height:1.5;}
+  .lk-tf-ctx{font-size:13.5px;color:var(--muted);font-style:italic;margin:4px 0 8px 31px;line-height:1.5;}
+  .lk-tf-row{display:flex;gap:8px;font-size:13.5px;color:#334155;padding:5px 0 3px 31px;line-height:1.5;}
+  .tag{flex:0 0 auto;font-size:11px;font-weight:700;padding:1px 8px;border-radius:6px;
+    height:19px;display:inline-flex;align-items:center;margin-top:2px;}
+  .tag.ok{background:#dcfce7;color:#15803d;}
+  .tag.no{background:#fee2e2;color:#b91c1c;}
+  .lk-tf-ex{font-size:12.5px;color:var(--muted);padding-left:31px;margin-bottom:8px;line-height:1.5;}
+  .lk-specs{margin:4px 0 8px 31px;}
+
+  /* ----- Done ----- */
+  .done-card{text-align:center;padding:34px 20px;}
+  .done-card .emoji{font-size:42px;line-height:1;}
+  .done-card h2{margin:12px 0 6px;font-size:20px;}
+  .done-card p{color:var(--muted);font-size:14.5px;margin:0 0 20px;}
+
+  @media (max-width:520px){
+    .app{padding:18px 11px 50px;}
+    .card{padding:15px;}
+    .qtext{font-size:15.5px;}
+    .option{font-size:14px;padding:11px 12px;}
+    .tab{font-size:12px;padding:9px 3px;}
+    header h1{font-size:19px;}
+    .tf-btns{padding-left:0;}
+    .lk-a,.lk-tf-row,.lk-tf-ex,.lk-tf-ctx,.lk-note,.lk-specs{margin-left:0;padding-left:0;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>Ôn tập Công nghệ 10</h1>
+    <p>Đề cương Giữa kì I · 74 câu trắc nghiệm · 12 câu Đúng/Sai · Bản V2</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="mc">Trắc nghiệm (74)</button>
+    <button class="tab" data-tab="tf">Đúng / Sai (12)</button>
+    <button class="tab" data-tab="lookup">Tra cứu</button>
+  </nav>
+
+  <!-- ================= TAB 1: TRẮC NGHIỆM ================= -->
+  <section id="panel-mc" class="panel active">
+    <div class="card" id="mcCard">
+      <div class="topbar">
+        <span id="mcCounter">Câu 1/74</span>
+        <span class="score" id="mcScore">Đúng: 0 · Sai: 0</span>
+      </div>
+      <div class="progress"><div class="bar" id="mcBar"></div></div>
+
+      <h2 class="qtext" id="mcQuestion"></h2>
+      <div id="mcNoteWrap"></div>
+      <div id="mcOptions"></div>
+      <div class="feedback" id="mcFeedback"></div>
+
+      <div class="actions">
+        <button class="btn ghost" id="mcShuffle">🔀 Đảo câu hỏi</button>
+        <button class="btn primary" id="mcNext">Câu tiếp theo →</button>
+      </div>
+    </div>
+
+    <div class="card done-card" id="mcDone" style="display:none">
+      <div class="emoji">🎉</div>
+      <h2>Hoàn thành phần trắc nghiệm!</h2>
+      <p id="mcDoneText"></p>
+      <button class="btn primary" id="mcRestart">Làm lại từ đầu</button>
+    </div>
+  </section>
+
+  <!-- ================= TAB 2: ĐÚNG / SAI ================= -->
+  <section id="panel-tf" class="panel">
+    <div class="card" id="tfCard">
+      <div class="topbar">
+        <span id="tfCounter">Câu 1/12</span>
+        <span class="score">Chọn Đúng hoặc Sai cho từng ý</span>
+      </div>
+      <div class="progress"><div class="bar" id="tfBar"></div></div>
+
+      <p class="tf-context" id="tfContext"></p>
+      <div id="tfSpecs"></div>
+      <div id="tfItems"></div>
+
+      <div class="actions">
+        <button class="btn ghost" id="tfRestart">↺ Làm lại</button>
+        <button class="btn primary" id="tfNext">Câu tiếp theo →</button>
+      </div>
+    </div>
+
+    <div class="card done-card" id="tfDone" style="display:none">
+      <div class="emoji">✅</div>
+      <h2>Đã xem hết 12 câu Đúng/Sai!</h2>
+      <p>Bạn có thể quay lại làm lại bất cứ lúc nào.</p>
+      <button class="btn primary" id="tfRestart2">Làm lại từ đầu</button>
+    </div>
+  </section>
+
+  <!-- ================= TAB 3: TRA CỨU ================= -->
+  <section id="panel-lookup" class="panel">
+    <div class="card">
+      <h3 class="section-title">Phần I — 74 câu trắc nghiệm (đáp án đúng)</h3>
+      <div id="lkMC"></div>
+    </div>
+    <div class="card">
+      <h3 class="section-title">Phần II — 12 câu Đúng / Sai (kèm giải thích)</h3>
+      <div id="lkTF"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================
+   TIỆN ÍCH CHUNG
+   ========================================================= */
+const LETTERS = ["A", "B", "C", "D"];
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/* Cho phép **in đậm** trong list item */
+function formatBold(text) {
+  return escapeHTML(text).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+/* Render mảng specs (table / list / note) thành HTML */
+function renderSpecs(specs, compact) {
+  if (!specs || !specs.length) return "";
+  const boxCls = compact ? "spec-box compact" : "spec-box";
+  const titleHTML = compact ? "" :
+    '<div class="spec-title">📋 Dữ kiện &amp; thông số kỹ thuật</div>';
+
+  const body = specs.map(function (s) {
+    if (s.type === "table") {
+      const head = "<tr>" + s.headers.map(function (h) {
+        return "<th>" + escapeHTML(h) + "</th>";
+      }).join("") + "</tr>";
+      const rows = s.rows.map(function (row) {
+        return "<tr>" + row.map(function (c) {
+          return "<td>" + escapeHTML(c) + "</td>";
+        }).join("") + "</tr>";
+      }).join("");
+      return '<div class="spec-table-wrap">' +
+        (s.title ? '<div class="spec-subtitle">' + escapeHTML(s.title) + '</div>' : "") +
+        '<table class="spec-table"><thead>' + head + '</thead><tbody>' + rows + '</tbody></table>' +
+        '</div>';
+    }
+    if (s.type === "list") {
+      return '<div>' +
+        (s.title ? '<div class="spec-subtitle">' + escapeHTML(s.title) + '</div>' : "") +
+        '<ul class="spec-list">' +
+        s.items.map(function (it) { return "<li>" + formatBold(it) + "</li>"; }).join("") +
+        '</ul></div>';
+    }
+    if (s.type === "note") {
+      return '<div class="spec-note">' + escapeHTML(s.text) + '</div>';
+    }
+    return "";
+  }).join("");
+
+  return '<div class="' + boxCls + '">' + titleHTML + body + '</div>';
+}
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* =========================================================
+   CHUYỂN TAB
+   ========================================================= */
+document.querySelectorAll(".tab").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll(".tab").forEach(function (b) { b.classList.remove("active"); });
+    document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
+    btn.classList.add("active");
+    document.getElementById("panel-" + btn.dataset.tab).classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
+
+/* =========================================================
+   DỮ LIỆU — 74 CÂU TRẮC NGHIỆM (V2)
+   ========================================================= */
+const quizData = [
+  { q: "Khái niệm hệ thống kĩ thuật?",
+    options: ["Có các phần tử đầu ra",
+              "Là hệ thống gồm các phần tử đầu vào, đầu ra và bộ phận xử lí có liên hệ với nhau để thực hiện nhiệm vụ",
+              "Có các phần tử đầu vào",
+              "Có bộ phận xử lí"],
+    answer: 1 },
+
+  { q: "Có mấy công nghệ trong lĩnh vực điện – điện tử?",
+    options: ["2", "4", "5", "3"], answer: 2 },
+
+  { q: "Khoa học có mối quan hệ như thế nào đối với kĩ thuật?",
+    options: ["Khoa học tạo cơ sở cho sự phát triển của kĩ thuật",
+              "Kĩ thuật tạo cơ sở cho khoa học phát triển",
+              "Khoa học giúp kĩ thuật tiến bộ",
+              "Khoa học và kĩ thuật không có sự tác động qua lại"],
+    answer: 0 },
+
+  { q: "Cấu trúc hệ thống kĩ thuật mạch kín và mạch hở khác nhau ở điểm nào?",
+    options: ["Tín hiệu phản hồi", "Đầu ra", "Đầu vào", "Bộ phận xử lí"], answer: 0 },
+
+  { q: "Sản phẩm nào dưới đây được làm bằng gang thép?",
+    options: ["Thước", "Nồi, chảo", "Bút chì", "Mũ lưỡi trai"], answer: 1 },
+
+  { q: "Bộ phận xử lí của máy sấy là gì?",
+    options: ["Chuyển đổi điện năng thành nhiệt năng và cơ năng",
+              "Điện năng", "Hoá năng", "Nhiệt năng"], answer: 0 },
+
+  { q: "Mục đích của đánh giá công nghệ là gì?",
+    options: ["Nhận biết được mặt tích cực và tiêu cực của công nghệ.",
+              "Lựa chọn thiết bị công nghệ phù hợp cho bản thân hoặc cho gia đình.",
+              "Lựa chọn công nghệ phù hợp để áp dụng vào dự án khoa học kĩ thuật",
+              "Cả 3 đáp án trên"], answer: 3 },
+
+  { q: "Cấu trúc của hệ thống kĩ thuật có các thành phần chính là?",
+    options: ["Đầu vào", "Đầu ra", "Bộ phận xử lí", "Cả 3 đáp án trên"], answer: 3 },
+
+  { q: "Ngành công nghệ nào tạo ra các vật liệu mới từ các hạt có kích thước hạt rất nhỏ?",
+    options: ["Công nghệ CAD/CAM-CNC", "Công nghệ vật liệu Nano",
+              "Công nghệ trí tuệ nhân tạo", "Công nghệ internet vạn vật"], answer: 1 },
+
+  { q: "Điện thoại phát minh vào năm nào?",
+    options: ["1887", "1880", "1876", "1875"], answer: 2 },
+
+  { q: "Đặc trưng cho cuộc cách mạng công nghiệp lần thứ hai là:",
+    options: ["Động cơ hơi nước và cơ giới hóa",
+              "Năng lượng và dây chuyền sản xuất hàng loạt",
+              "Năng lượng điện và dây chuyền sản xuất hàng loạt",
+              "Công nghệ thông tin và tự động hóa"], answer: 2 },
+
+  { q: "Hệ thống kĩ thuật có những loại nào sau đây?",
+    options: ["Mạch kín và mạch hở", "Mạch kín", "Mạch hở", "Mạch kết hợp"], answer: 0 },
+
+  { q: "Ưu điểm của công nghệ năng lượng tái tạo là gì?",
+    options: ["Giảm ô nhiễm, tiết kiệm chi phí sinh hoạt",
+              "Ứng dụng được trong nhiều lĩnh vực",
+              "Tất cả các đáp án trên",
+              "Nguồn năng lượng tạo ra là rất lớn"], answer: 2 },
+
+  { q: "Công nghệ nào sau đây được phân loại theo lĩnh vực khoa học?",
+    options: ["Công nghệ thông tin", "Cả 3 đáp án trên",
+              "Công nghệ trồng cây trong nhà kính", "Công nghệ vận tải"], answer: 0 },
+
+  { q: "Công nghệ trí tuệ nhân tạo viết tắt là AI. Vậy AI là viết tắt của cụm từ nào dưới đây?",
+    options: ["Artificial inteligence", "Artificial of intelligence",
+              "Artificial to intelligence", "Artificial intelligence"], answer: 3 },
+
+  { q: "Có mấy cuộc cách mạng công nghiệp?",
+    options: ["5", "4", "2", "3"], answer: 1 },
+
+  { q: "Công nghệ nano là:",
+    options: ["Công nghệ phân tích, ứng dụng các vật liệu có cấu trúc nano",
+              "Công nghệ phân tách mô hình 3D thành các lớp 2D xếp chồng lên nhau",
+              "Công nghệ chế tạo và ứng dụng các vật liệu có cấu trúc nano",
+              "Công nghệ phân tích, chế tạo và ứng dụng các vật liệu có cấu trúc nano"],
+    answer: 3 },
+
+  { q: "Cuộc cách mạng công nghiệp lần thứ ba bắt đầu vào giai đoạn nào?",
+    options: ["Những năm 70 của thế kỉ XX", "Nửa đầu thế kí XVIII",
+              "Những năm 30 của thế kỉ XX", "Nửa đầu thế kỉ XIX"], answer: 0 },
+
+  { q: "Công nghệ Robot có bộ não sử dụng trí tuệ nhân tạo được cải thiện về khả năng nhận thức, ra quyết định và thực thi nhiệm vụ theo cách toàn diện hơn so với robot truyền thống. Đó là công nghệ gì?",
+    options: ["Công nghệ trí tuệ nhân tạo", "Cả 3 đáp án trên",
+              "Công nghệ Robot thông minh", "Công nghệ Internet vạn vật"], answer: 2 },
+
+  { q: "Đặc trưng cho cuộc cách mạng công nghiệp lần thứ tư là:",
+    options: ["Năng lượng điện và sản xuất hàng loạt",
+              "Công nghệ số, tính kết nối và trí thông minh nhân tạo",
+              "Động cơ hơi nước và cơ giới hóa",
+              "Công nghệ thông tin và tự động hóa"], answer: 1 },
+
+  { q: "Bộ phận xử lí của bàn là là gì?",
+    options: ["Chuyển đổi điện năng thành nhiệt năng", "Cơ năng",
+              "Nhiệt năng", "Điện năng"], answer: 0 },
+
+  { q: "Phân loại công nghệ dựa vào căn cứ nào sau đây?",
+    options: ["Theo lĩnh vực khoa học", "Cả 3 đáp án",
+              "Theo lĩnh vực kĩ thuật", "Theo đối tượng áp dụng"], answer: 1 },
+
+  { q: "Đâu là ngành công nghệ mới?",
+    options: ["Cả 3 đáp án trên", "Công nghệ chế tạo máy",
+              "Công nghệ robot thông minh", "Công nghệ dệt may"], answer: 2 },
+
+  { q: "Khái niệm về nhà khoa học:",
+    options: ["Là việc ứng dụng các nguyên lí khoa học…",
+              "Là hệ thống tri thức về mọi quy luật…",
+              "Là người làm công tác nghiên cứu khoa học với các phương pháp nghiên cứu khác nhau trong các lĩnh vực, ngành nghề khác nhau, phục vụ cho mọi mặt đời sống của con người.",
+              "Bao gồm các lĩnh vực Vật lí, Hóa học, Sinh học…"], answer: 2 },
+
+  { q: "Đâu là nguồn tài nguyên gần như vô tận?",
+    options: ["Dầu thô", "Khí gas tự nhiên", "Năng lượng gió", "Kim loại quý"], answer: 2 },
+
+  { q: "Công nghệ phù hợp nhất được sử dụng để tạo ra sản phẩm bánh răng bằng thép là:",
+    note: "Hình minh họa: Bánh răng răng cưa trụ bằng thép",
+    options: ["Công nghệ gia công cắt gọt.", "Công nghệ gia công áp lực.",
+              "Công nghệ nano.", "Công nghệ hàn."], answer: 0 },
+
+  { q: "Công nghệ gia công áp lực là gì?",
+    options: ["Là công nghệ chế tạo sản phẩm kim loại bằng nấu chảy rót vào khuôn…",
+              "Là công nghệ dựa vào tính dẻo của kim loại, dùng ngoại lực của thiết bị làm cho kim loại biến dạng theo hình dáng yêu cầu",
+              "Là công nghệ lấy đi một phần kim loại dưới dạng phoi…",
+              "Là công nghệ điều chế kim loại từ quặng…"], answer: 1 },
+
+  { q: "Ngành công nghệ nào không thuộc lĩnh vực luyện kim?",
+    options: ["Công nghệ sản xuất điện năng", "Công nghệ luyện kim",
+              "Công nghệ đúc", "Công nghệ hàn"], answer: 0 },
+
+  { q: "Công nghệ là gì?",
+    options: ["Là việc ứng dụng các nguyên lí khoa học…",
+              "Là hệ thống tri thức về mọi quy luật…",
+              "Là giải pháp, quy trình, bí quyết kĩ thuật có hoặc không kèm theo công cụ, phương tiện dùng để biến đổi nguồn lực thành sản phẩm, dịch vụ.",
+              "Là giải pháp, quy trình là hệ thống tri thức…"], answer: 2 },
+
+  { q: "Kết luận nào sau đây là sai?",
+    options: ["Máy sấy tóc là sản phẩm điện – cơ dạng quay",
+              "Máy giặt là sản phẩm điện – cơ dạng quay",
+              "Quạt điện là sản phẩm điện – cơ dạng tịnh tiến",
+              "Thang máy là sản phẩm điện – cơ dạng tịnh tiến"], answer: 2 },
+
+  { q: "Bộ phận xử lí của bàn là thực hiện chức năng?",
+    options: ["Lưu trữ", "Tất cả các đáp án", "Vận chuyển", "Biến đổi"], answer: 3 },
+
+  { q: "Điểm nào sau đây không đúng khi nói về đèn sợi đốt?",
+    options: ["Hiệu quả chiếu sáng thấp", "Tiêu thụ nhiều điện",
+              "Không sinh nhiệt", "Tuổi thọ thấp"], answer: 2 },
+
+  { q: "Công nghệ luyện kim là gì?",
+    options: ["Là công nghệ dựa vào tính dẻo…",
+              "Là công nghệ lấy đi phoi…",
+              "Là công nghệ điều chế kim loại, hợp kim để dùng trong cuộc sống từ các loại quặng hoặc từ các nguyên liệu khác.",
+              "Là công nghệ đúc rót vào khuôn…"], answer: 2 },
+
+  { q: "Công nghệ chế tạo sản phẩm bằng phương pháp nấu kim loại thành dạng lỏng, sau đó rót vào khuôn là:",
+    options: ["công nghệ gia công cắt gọt.", "công nghệ đúc.",
+              "công nghệ luyện kim.", "công nghệ hàn."], answer: 1 },
+
+  { q: "Đầu ra của hệ thống kĩ thuật là:",
+    options: ["Thông tin đã xử lí", "Thông tin cần xử lí",
+              "Vật liệu cần xử lí", "Năng lượng cần xử lí."], answer: 0 },
+
+  { q: "Đặc điểm nào sau đây không đúng khi nói về đèn LED?",
+    options: ["Hiệu quả chiếu sáng cao", "Tuổi thọ cao",
+              "Tiết kiệm điện năng", "Sinh nhiệt lớn"], answer: 3 },
+
+  { q: "Đặc trưng cho cuộc cách mạng công nghiệp lần thứ ba là:",
+    options: ["Công nghệ thông tin và tự động hóa",
+              "Công nghệ số và trí tuệ nhân tạo",
+              "Năng lượng điện và sản xuất hàng loạt",
+              "Động cơ hơi nước và cơ giới hóa"], answer: 0 },
+
+  { q: "Năng lượng nào có vai trò quan trọng trong cuộc cách mạng lần thứ 2?",
+    options: ["Năng lượng ánh sáng", "Năng lượng hơi nước",
+              "Năng lượng điện", "Năng lượng gió"], answer: 2 },
+
+  { q: "Phần tử đầu vào của hệ thống kĩ thuật:",
+    options: ["Là nơi xử lí thông tin…",
+              "Là nơi tiếp nhận các thông tin của hệ thống kĩ thuật",
+              "Là các cơ cấu chấp hành…",
+              "Cả 3 đáp án trên"], answer: 1 },
+
+  { q: "Điều khiển số bằng máy tính được viết tắt bằng kí tự nào trong công nghệ CAD/CAM-CNC?",
+    options: ["CN", "CAD", "CNC", "CAM"], answer: 2 },
+
+  { q: "Đâu không phải là mục đích của đánh giá công nghệ?",
+    options: ["Lựa chọn công nghệ phù hợp để áp dụng vào dự án khoa học kĩ thuật",
+              "Nhận biết được mặt tích cực và tiêu cực của công nghệ.",
+              "Nghiên cứu kĩ thuật sản phẩm",
+              "Lựa chọn thiết bị công nghệ phù hợp cho bản thân hoặc cho gia đình"],
+    answer: 2 },
+
+  { q: "Lí do đèn LED được sử dụng rộng rãi là:",
+    options: ["Tiết kiệm điện năng", "Hiệu quả chiếu sáng cao",
+              "Tuổi thọ cao", "Cả 3 đáp án trên"], answer: 3 },
+
+  { q: "Phương pháp sản xuất điện năng nào sau đây tạo ra nhiều khí thải gây hiệu ứng nhà kính?",
+    options: ["Điện gió.", "Thủy điện.", "Nhiệt điện.", "Điện mặt trời."], answer: 2 },
+
+  { q: "Hình ảnh mô tả bơm phun sương dung dịch dinh dưỡng vào rễ cây treo lơ lửng trong không khí là phương pháp gì?",
+    options: ["Phương pháp khí canh.", "Phương pháp thủy canh.",
+              "Phương pháp địa canh.", "Cả 3 đáp án đều sai."], answer: 0 },
+
+  { q: "Công nghệ internet vạn vật viết tắt là IoT. Vậy IoT là viết tắt của cụm từ nào dưới đây?",
+    options: ["Internet of Thing", "Internet off Things",
+              "Internet of Things", "Internet off Thing"], answer: 2 },
+
+  { q: "Quan hệ giữa khoa học và công nghệ thể hiện ở đặc điểm nào?",
+    options: ["Công nghệ thúc đẩy khoa học", "Khoa học tạo ra công nghệ",
+              "Khoa học là cơ sở để phát triển công nghệ",
+              "Khoa học là cơ sở của kĩ thuật"], answer: 2 },
+
+  { q: "Sản phẩm của quá trình CAM trong công nghệ CAD/CAM/CNC là gì?",
+    options: ["Là quy trình công nghệ gia công chi tiết.",
+              "Sản phẩm sản xuất có trợ giúp của máy tính",
+              "Bản vẽ thiết kế với đầy đủ kích thước…",
+              "Là chi tiết thật được gia công trên máy điều khiển số"], answer: 0 },
+
+  { q: "Công nghệ Robot có bộ não sử dụng trí tuệ nhân tạo được cải thiện về khả năng nhận thức, ra quyết định và thực thi nhiệm vụ theo cách toàn diện hơn so với robot truyền thống. Đó là công nghệ gì?",
+    options: ["Công nghệ trí tuệ nhân tạo", "Cả 3 đáp án trên",
+              "Công nghệ Robot thông minh", "Công nghệ Internet vạn vật"], answer: 2 },
+
+  { q: "Ngành công nghệ nào biến đổi các năng lượng khác thành điện năng?",
+    options: ["Công nghệ điện – quang", "Công nghệ điện – điện tử",
+              "Công nghệ sản xuất điện năng",
+              "Công nghệ điều khiển và tự động hóa"], answer: 2 },
+
+  { q: "Đầu ra của hệ thống kĩ thuật là:",
+    options: ["Thông tin đã xử lí", "Vật liệu", "Năng lượng", "Cả 3 đáp án"],
+    answer: 3 },
+
+  { q: "Môn học nào không thuộc khoa học tự nhiên?",
+    options: ["Toán", "Vật lý", "Địa lý", "Sinh học"], answer: 2 },
+
+  { q: "Đầu ra của hệ thống kĩ thuật là:",
+    options: ["Cả 3 đáp án trên", "Năng lượng", "Thông tin đã xử lí", "Vật liệu"],
+    answer: 0 },
+
+  { q: "Ưu điểm của công nghệ in 3D so với các công nghệ chế tạo truyền thống khác là gì?",
+    options: ["Đáp án khác", "Tạo ra được các sản phẩm có cấu tạo phức tạp",
+              "Không có gì khác biệt", "Tạo ra được sản phẩm không bị rỗng bên trong"],
+    answer: 1 },
+
+  { q: "Nhược điểm của đèn sợi đốt là:",
+    options: ["Tuổi thọ thấp", "Hiệu quả chiếu sáng thấp",
+              "Tiêu thụ nhiều điện", "Cả 3 đáp án trên"], answer: 3 },
+
+  { q: "Công nghệ năng lượng tái tạo là:",
+    options: ["Công nghệ sản xuất năng lượng trên cơ sở chuyển hóa từ các nguồn vô hạn ít tác động…",
+              "Công nghệ… không tác động tiêu cực đến môi trường",
+              "Công nghệ sản xuất năng lượng trên cơ sở chuyển hóa từ các nguồn năng lượng liên tục, vô hạn, ít tác động tiêu cực đến môi trường.",
+              "Công nghệ… có tác động tiêu cực đến môi trường"], answer: 2 },
+
+  { q: "Ngành công nghệ nào biến đổi điện năng thành cơ năng dựa trên nguyên lí cảm ứng điện từ?",
+    options: ["Công nghệ điện – quang", "Công nghệ điện – điện tử",
+              "Công nghệ điều khiển và tự động hóa", "Công nghệ điện – cơ"],
+    answer: 3 },
+
+  { q: "Tiêu chí về độ tin cậy của công nghệ là?",
+    options: ["Đánh giá sự tác động của công nghệ đến môi trường",
+              "Đánh giá về khả năng ổn định của công nghệ.",
+              "Đánh giá về độ chính xác, khả năng ổn định của công nghệ.",
+              "Đánh giá về độ chính xác của công nghệ"], answer: 2 },
+
+  { q: "CAD là viết tắt của cụm từ nào?",
+    options: ["Computer-Assisted Desaturater", "Computer-Assisted Diagram",
+              "Computer-Aided Drawer", "Computer-Aided Design"], answer: 3 },
+
+  { q: "Tiêu chí về độ tin cậy của đánh giá công nghệ là?",
+    options: ["Đánh giá chi phí đầu tư", "Đánh giá về năng suất công nghệ.",
+              "Đánh giá về độ chính xác của công nghệ",
+              "Đánh giá sự tác động của công nghệ đến môi trường không khí"],
+    answer: 2 },
+
+  { q: "Bộ phận xử lí của máy xay sinh tố:",
+    options: ["Chuyển đổi điện năng thành điện năng.",
+              "Chuyển đổi cơ năng thành cơ năng.",
+              "Chuyển đổi điện năng thành nhiệt năng.",
+              "Chuyển đổi điện năng thành cơ năng."], answer: 3 },
+
+  { q: "Quan hệ giữa khoa học, kĩ thuật và công nghệ thể hiện ở đặc điểm nào?",
+    options: ["Cả 3 đáp án",
+              "Kĩ thuật tạo ra công nghệ mới, dựa trên công nghệ hiện có",
+              "Khoa học là cơ sở của kĩ thuật",
+              "Công nghệ thúc đẩy khoa học"], answer: 0 },
+
+  { q: "Công nghệ đúc là gì?",
+    options: ["Là công nghệ điều chế kim loại từ quặng…",
+              "Là công nghệ chế tạo sản phẩm kim loại bằng phương pháp nấu kim loại thành trạng thái lỏng, sau đó rót vào khuôn có hình dạng và kích thước như sản phẩm.",
+              "Là công nghệ dựa vào tính dẻo…",
+              "Là công nghệ lấy đi một phần kim loại dưới dạng phoi…"], answer: 1 },
+
+  { q: "Đặc trưng cho cuộc cách mạng công nghiệp lần thứ nhất là:",
+    options: ["Năng lượng hơi nước và cơ giới hóa",
+              "Công nghệ thông tin và tự động hóa.",
+              "Năng lượng hơi nước và sản xuất hàng loạt.",
+              "Công nghệ số và trí tuệ nhân tạo"], answer: 0 },
+
+  { q: "Công nghệ kết nối, thu thập và trao đổi dữ liệu với nhau giữa các thiết bị số qua môi trường internet là gì?",
+    options: ["Công nghệ Robot thông minh", "Công nghệ trí tuệ nhân tạo",
+              "Công nghệ in 3D", "Công nghệ Internet vạn vật"], answer: 3 },
+
+  { q: "Phân loại công nghệ dựa vào căn cứ nào sau đây?",
+    options: ["Theo giai đoạn lịch sử", "Theo chức năng",
+              "Theo lĩnh vực khoa học", "Theo công nghệ vật liệu"], answer: 2 },
+
+  { q: "Quan sát và cho biết hình ảnh mô tả công nghệ hàn nào?",
+    note: "Hình minh họa: Chi tiết đầu nối thanh thép tròn bị nén ép nóng phình to ở giữa",
+    options: ["Hàn MAG", "Hàn áp lực", "Hàn hơi", "Hàn nóng chảy"], answer: 1 },
+
+  { q: "Đánh giá công nghệ thường dựa trên các tiêu chí nào sau đây?",
+    options: ["Hiệu quả, kinh tế, độ bền, nhân công.",
+              "Hiệu quả, độ tin cậy, dịch vụ bảo dưỡng, kinh tế.",
+              "Hiệu quả, độ tin cậy, môi trường, kinh tế.",
+              "Thẩm mĩ, môi trường, kinh tế, tính năng."], answer: 2 },
+
+  { q: "Khái niệm hệ thống kĩ thuật?",
+    options: ["Là hệ thống gồm các phần tử đầu ra và bộ phận xử lí…",
+              "Là hệ thống gồm các phần tử đầu vào và đầu ra…",
+              "Là hệ thống gồm các phần tử đầu vào, đầu ra và bộ phận xử lí có liên hệ với nhau để thực hiện nhiệm vụ cụ thể.",
+              "Là hệ thống gồm các phần tử đầu vào và bộ phận xử lí…"], answer: 2 },
+
+  { q: "Công nghệ nào sau đây không thuộc lĩnh vực luyện kim, cơ khí?",
+    options: ["Điều khiển và tự động hóa", "Gia công cắt gọt", "Hàn", "Đúc"],
+    answer: 0 },
+
+  { q: "CAM trong công nghệ CAD/CAM – CNC là gì?",
+    options: ["Điều khiển số bằng máy tính", "Điều khiển số",
+              "Lập quy trình gia công chi tiết có sự trợ giúp của máy tính",
+              "Thiết kế có sự trợ giúp của máy tính"], answer: 2 },
+
+  { q: "Công nghệ in 3D là:",
+    options: ["Công nghệ phân tách mô hình 3D thành các lớp 2D xếp chồng lên nhau",
+              "Công nghệ phân tách mô hình 3D thành các lớp xếp chồng lên nhau",
+              "Công nghệ phân tách mô hình thành các lớp 2D xếp chồng lên nhau",
+              "Công nghệ phân tách mô hình 2D thành các lớp 3D xếp chồng lên nhau"],
+    answer: 0 },
+
+  { q: "Tiêu chí về hiệu quả của đánh giá công nghệ là?",
+    options: ["Đánh giá chi phí đầu tư",
+              "Đánh giá về năng suất, chất lượng và thẩm mĩ công nghệ.",
+              "Đánh giá về độ chính xác của công nghệ",
+              "Đánh giá sự tác động của công nghệ đến môi trường"], answer: 1 },
+
+  { q: "Công nghệ nào tạo ra sản phẩm bằng cách đắp chồng tuần tự các lớp vật liệu lên nhau?",
+    options: ["Công nghệ in 3D.", "Công nghệ CAD/CAM - CNC.",
+              "Công nghệ đúc.", "Công nghệ gia công áp lực."], answer: 0 },
+
+  { q: "Ý kiến nào sau đây là sai về công nghệ trí tuệ nhân tạo?",
+    options: ["Có thể tự xử lý thông tin và đưa ra các quyết định điều khiển",
+              "Là mô hình tư duy có trí tuệ và cảm xúc riêng",
+              "Là tạo ra các phần mềm tự học cho máy tính.",
+              "Cho phép máy tính có thể tiếp nhận được thông tin từ bên ngoài"],
+    answer: 1 }
+];
+
+/* =========================================================
+   DỮ LIỆU — 12 CÂU ĐÚNG / SAI (V2, kèm specs)
+   ========================================================= */
+const tfData = [
+  {
+    context: "Khi tìm hiểu về thành tựu của các cuộc cách mạng công nghiệp. Em cho biết nhận định nào là Đúng, nhận định nào là Sai?",
+    specs: null,
+    items: [
+      { text: "Máy tính bàn là sản phẩm của cách mạng công nghiệp lần 3", ans: true,
+        ex: "CMCN lần 3 gắn liền với công nghệ thông tin, máy tính cá nhân và mạch bán dẫn." },
+      { text: "Máy dệt vải là sản phẩm của cách mạng công nghiệp lần 1.", ans: true,
+        ex: "Cơ giới hóa ngành dệt (máy kéo sợi, máy dệt) là khởi đầu của CMCN 1." },
+      { text: "Động cơ hơi nước là sản phẩm của cách mạng công nghiệp lần 4", ans: false,
+        ex: "Động cơ hơi nước của James Watt là thành tựu trung tâm của CMCN 1, không phải lần 4." },
+      { text: "Năng lượng điện là sản phẩm của cách mạng công nghiệp lần 2", ans: true,
+        ex: "Năng lượng điện và dây chuyền sản xuất hàng loạt là đặc trưng của CMCN 2." }
+    ]
+  },
+  {
+    context: "Quan sát hệ thống kĩ thuật điều khiển ánh sáng thông qua cảm biến (Hình 2.1) và cho biết những nhận định sau:",
+    specs: [
+      { type: "list", title: "Dữ kiện sơ đồ hệ thống kĩ thuật (Hình 2.1)", items: [
+        "**Đầu vào:** Nguồn điện lưới xoay chiều '220V AC' và tín hiệu điều khiển (ánh sáng mặt trời).",
+        "**Bộ phận xử lý:** Bóng điện gắn công tắc cảm biến ánh sáng (mạch cảm quang đóng/cắt tự động theo cường độ sáng môi trường).",
+        "**Đầu ra:** Trạng thái bật/tắt (sáng/tối) của đèn."
+      ]}
+    ],
+    items: [
+      { text: "Bộ phận xử lý của hệ thống là cảm biến ánh sáng", ans: true,
+        ex: "Cảm biến/mạch điện tử cảm quang đóng vai trò tiếp nhận và xử lý tín hiệu cường độ sáng môi trường để điều khiển đóng/ngắt mạch." },
+      { text: "Hệ thống chiếu sáng hoạt động dựa vào công tắc bật tắt", ans: false,
+        ex: "Hệ thống hoạt động hoàn toàn tự động nhờ cảm biến ánh sáng môi trường, không dựa vào công tắc cơ học bật tắt bằng tay." },
+      { text: "Bộ phận đầu ra của hệ thống là trạng thái sáng hoặc tối của đèn", ans: true,
+        ex: "Đầu ra là trạng thái thực thi công việc: bóng đèn sáng hoặc tắt." },
+      { text: "Điện áp vào của hệ thống có giá trị 220V một chiều", ans: false,
+        ex: "Điện áp vào có ký hiệu '220V AC' là dòng điện xoay chiều (Alternating Current), không phải một chiều (DC)." }
+    ]
+  },
+  {
+    context: "Trong công nghệ truyền thông không dây. Em cho biết nhận định nào là Đúng, nhận định nào là Sai?",
+    specs: [
+      { type: "list", title: "Dữ kiện phân loại công nghệ truyền thông", items: [
+        "**Truyền thông có dây:** cáp đồng thoại cố định, cáp quang.",
+        "**Truyền thông không dây:** Bluetooth (phạm vi cá nhân ngắn < 10–20 m); Wifi (mạng cục bộ WLAN phạm vi hẹp văn phòng/gia đình); Mạng di động cellular (trạm phát sóng BTS phủ sóng diện rộng liên quận/huyện/quốc gia)."
+      ]}
+    ],
+    items: [
+      { text: "Điện thoại cố định là một thiết bị truyền thông không dây đầu tiên", ans: false,
+        ex: "Điện thoại cố định truyền tín hiệu qua đường dây cáp đồng hữu tuyến (truyền thông có dây)." },
+      { text: "Công nghệ mạng di động cho phép truyền sóng cho nhiều thiết bị trong một phạm vi rộng lớn", ans: true,
+        ex: "Mạng di động (GSM, 3G, 4G, 5G) kết nối các trạm phát sóng diện rộng trên toàn cầu." },
+      { text: "Công nghệ Bluetooth chỉ cho phép truyền sóng từ thiết bị này cho 1 thiết bị khác trong phạm vi gần.", ans: true,
+        ex: "Bluetooth là chuẩn kết nối không dây tầm ngắn (PAN) ở khoảng cách gần." },
+      { text: "Công nghệ wifi cho phép truyền sóng cho nhiều thiết bị trong phạm vi rộng", ans: false,
+        ex: "Wifi là mạng cục bộ (WLAN) chỉ truyền sóng trong phạm vi hẹp (bán kính vài chục mét trong nhà/tòa nhà), không phải diện rộng." }
+    ]
+  },
+  {
+    context: "Nhà sản xuất đưa ra các thông số về hai loại đèn như sau: cho biết nhận định nào là Đúng, nhận định nào là Sai?",
+    specs: [
+      { type: "table",
+        title: "Bảng thông số kỹ thuật so sánh 2 loại đèn",
+        headers: ["Tiêu chí thông số", "Đèn bàn sợi đốt", "Đèn bàn LED"],
+        rows: [
+          ["Điện áp định mức", "220 V – 50 Hz", "220 V – 50 Hz"],
+          ["Quang thông", "200 lm", "200 lm"],
+          ["Công suất điện", "40 W", "9 W"],
+          ["Thời gian sử dụng", "2 000 giờ", "50 000 giờ"]
+        ]
+      }
+    ],
+    items: [
+      { text: "Hai loại đèn có điện áp là 220 V – tần số 50 Hz.", ans: true,
+        ex: "Khớp chính xác thông số ở bảng kỹ thuật: 220 V – 50 Hz." },
+      { text: "Tiêu chí đánh giá công nghệ quan trọng nhất là tiêu chí về kinh tế.", ans: false,
+        ex: "Đánh giá công nghệ là quá trình cân đối toàn diện các tiêu chí: Hiệu quả, Độ tin cậy, Môi trường và Kinh tế; không tuyệt đối hóa riêng tiêu chí kinh tế." },
+      { text: "Nếu đánh giá theo các tiêu chí cho một sản phẩm công nghệ thì đèn bàn LED tốt hơn.", ans: true,
+        ex: "Đèn LED vượt trội: tiết kiệm điện hơn gấp 4,4 lần (9 W so với 40 W) với cùng quang thông 200 lm, và tuổi thọ gấp 25 lần (50 000 h so với 2 000 h)." },
+      { text: "Ưu điểm của đèn bàn LED có tuổi thọ cao và thân thiện với môi trường.", ans: true,
+        ex: "Đèn LED có tuổi thọ rất cao (50 000 giờ), ít tỏa nhiệt, không chứa thủy ngân độc hại nên thân thiện môi trường." }
+    ]
+  },
+  {
+    context: "Trong một cuộc thảo luận tìm hiểu về phát minh của các nhà khoa học Albert Einstein, James Watt, Louis Pasteur và Isaac Newton. Hoà, Bình, Hạnh, Phúc có các phát biểu sau:",
+    specs: [
+      { type: "list", title: "Dữ kiện các nhà khoa học và cống hiến", items: [
+        "**Albert Einstein:** Thuyết tương đối, giải thích hiệu ứng quang điện (thuyết lượng tử ánh sáng).",
+        "**James Watt:** Hoàn thiện động cơ hơi nước thương mại.",
+        "**Louis Pasteur:** Tìm ra phương pháp tiệt trùng và vắc-xin tiêm phòng (bệnh dại, than).",
+        "**Isaac Newton:** Phát hiện định luật vạn vật hấp dẫn, các định luật chuyển động cơ học kinh điển.",
+        "**Marie Curie:** Tìm ra nguyên tố phóng xạ Poloni (Po) và Radi (Ra)."
+      ]}
+    ],
+    items: [
+      { text: "Hoà nói Albert Einstein đã phát minh ra thuyết tương đối còn Isaac Newton đã tìm ra nguyên tử Po", ans: false,
+        ex: "Nguyên tố Poloni (Po) do Marie Curie và Pierre Curie phát hiện, không phải Newton." },
+      { text: "Bình phát biểu Albert Einstein đã phát minh ra thuyết lượng tử, James Watt phát minh ra động cơ hơi nước, Isaac Newton đã tìm ra định luật vạn vật hấp dẫn.", ans: false,
+        ex: "Thuyết lượng tử do Max Planck đặt nền móng khai sinh." },
+      { text: "Hạnh nói Louis Pasteur là nhà khoa học đã tìm thuốc vaxin và Isaac Newton phát minh ra thuyết lượng tử.", ans: false,
+        ex: "Isaac Newton thuộc thế kỉ XVII, không liên quan đến thuyết lượng tử (thế kỉ XX)." },
+      { text: "Phúc thì nói rằng Albert Einstein đã phát minh ra thuyết lượng tử và thuyết tương đối, James Watt phát minh ra động cơ hơi nước, Louis Pasteur tìm ra vaxin tiêm phòng và Isaac Newton đã phát minh ra định luật vạn vật hấp dẫn.", ans: true,
+        ex: "Phát biểu của Phúc đúng và chuẩn xác nhất theo nội dung bài học trong SGK Công nghệ 10." }
+    ]
+  },
+  {
+    context: "Dưới đây là hình ảnh về sản phẩm của các cuộc cách mạng công nghiệp. Em cho biết nhận định nào là Đúng, nhận định nào là Sai?",
+    specs: [
+      { type: "list", title: "Dữ kiện phân loại 4 sản phẩm trong hình", items: [
+        "**Hệ thống cột điện lưới cao thế** → Thuộc CMCN lần thứ 2 (kỷ nguyên năng lượng điện).",
+        "**Bộ máy vi tính để bàn PC** → Thuộc CMCN lần thứ 3 (kỷ nguyên máy tính, CNTT và tự động hóa).",
+        "**Biểu đồ ứng dụng Big Data trên đám mây** → Thuộc CMCN lần thứ 4 (kỷ nguyên công nghệ số, AI và IoT).",
+        "**Máy in 3D đang đắp lớp vật liệu chữ 3D** → Thuộc CMCN lần thứ 4 (chế tạo đắp lớp thông minh)."
+      ]}
+    ],
+    items: [
+      { text: "Big Data là sản phẩm của cách mạng công nghiệp lần thứ 2", ans: false,
+        ex: "Big Data là sản phẩm công nghệ đặc trưng của CMCN lần thứ 4." },
+      { text: "Máy tính là sản phẩm của cách mạng công nghiệp lần 3", ans: true,
+        ex: "Máy tính điện tử và vi xử lý bán dẫn là thành tựu cốt lõi của CMCN 3." },
+      { text: "Hệ thống điện là sản phẩm của cách mạng công nghiệp lần 1", ans: false,
+        ex: "Hệ thống điện và mạng lưới điện thuộc CMCN lần thứ 2 (CMCN 1 là năng lượng hơi nước)." },
+      { text: "Công nghệ in 3D là sản phẩm của cách mạng công nghiệp lần 4", ans: true,
+        ex: "In 3D là công nghệ chế tạo mới đột phá thuộc CMCN 4." }
+    ]
+  },
+  {
+    context: "Dưới đây là hình ảnh về sản phẩm của các cuộc cách mạng công nghiệp. Em cho biết nhận định nào là Đúng, nhận định nào là Sai?",
+    specs: [
+      { type: "list", title: "Dữ kiện tương ứng các hình ảnh", items: [
+        "**Hình 1** (Nông trại thông minh có robot, cảm biến tưới ẩm tự động): CMCN lần 4.",
+        "**Hình 2** (Máy tính để bàn): CMCN lần 3.",
+        "**Hình 3** (Lưới điện cao thế): CMCN lần 2.",
+        "**Hình 4** (Đầu tàu hỏa xả khói động cơ hơi nước): CMCN lần 1."
+      ]}
+    ],
+    items: [
+      { text: "Hình 1: CMCN lần thứ tư; Hình 2: CMCN lần thứ ba; Hình 3: CMCN lần thứ hai; Hình 4: CMCN lần thứ nhất", ans: true,
+        ex: "Sắp xếp thứ tự thời gian và bản chất công nghệ hoàn toàn chính xác." },
+      { text: "Hình 1: CMCN lần thứ hai; Hình 2: CMCN lần thứ ba; Hình 3: CMCN lần thứ tư; Hình 4: CMCN lần thứ nhất", ans: false,
+        ex: "Gán sai Hình 1 và Hình 3." },
+      { text: "Đặc trưng của cuộc cách mạng công nghiệp lần thứ hai là năng lượng điện và dây chuyền sản xuất hàng loạt quy mô lớn.", ans: true,
+        ex: "Khái niệm chuẩn xác về đặc trưng CMCN 2." },
+      { text: "Đặc trưng của cuộc cách mạng công nghiệp lần thứ ba là công nghệ số, tính kết nối và trí thông minh nhân tạo", ans: false,
+        ex: "Công nghệ số, tính kết nối và AI là đặc trưng của CMCN 4; CMCN 3 là máy tính, CNTT và tự động hóa." }
+    ]
+  },
+  {
+    context: "Đánh giá quạt trần và quạt cây ở dưới đây để lựa chọn loại quạt phù hợp đối với phòng ngủ và phòng khách của gia đình?",
+    specs: [
+      { type: "table",
+        title: "Bảng thông số so sánh quạt cây (A) và quạt trần (B)",
+        headers: ["Thông số kĩ thuật", "Quạt cây", "Quạt trần"],
+        rows: [
+          ["Trọng lượng", "5 kg", "6 kg"],
+          ["Đường kính cánh", "40 cm", "150 cm"],
+          ["Công suất điện", "47 W", "70 W"],
+          ["Số mức tốc độ gió", "3", "3"],
+          ["Điều khiển", "Từ xa", "Từ xa"]
+        ]
+      },
+      { type: "note", text: "Đặc tính sử dụng: Quạt trần làm mát trên diện rộng, lắp cố định trên trần nhà; Quạt cây làm mát cục bộ một hướng, dễ dàng di chuyển linh hoạt." }
+    ],
+    items: [
+      { text: "Quạt cây: Động cơ điện, cánh quạt có đường kính nhỏ.", ans: true,
+        ex: "Đường kính cánh quạt cây là 40 cm (nhỏ so với 150 cm của quạt trần)." },
+      { text: "Quạt trần: Động cơ điện, cánh quạt có đường kính lớn.", ans: true,
+        ex: "Đường kính cánh quạt trần lên tới 150 cm (rất lớn)." },
+      { text: "Quạt trần: Tiết kiệm điện trong trường hợp phòng có ít người và chỉ cần làm mát một điểm.", ans: false,
+        ex: "Quạt cây có công suất nhỏ hơn (47 W < 70 W) và làm mát cục bộ một điểm nên tiết kiệm điện hơn khi phòng ít người." },
+      { text: "Khả năng dễ dàng di chuyển linh hoạt khi sử dụng đối với quạt trần.", ans: false,
+        ex: "Quạt trần được gắn cố định vào móc treo trên trần nhà, không có khả năng di chuyển linh hoạt." }
+    ]
+  },
+  {
+    context: "Cho các phát biểu sau đây về các công nghệ trong lĩnh vực luyện kim và cơ khí:",
+    specs: [
+      { type: "list", title: "Dữ kiện các công nghệ cơ khí luyện kim", items: [
+        "**Luyện kim:** Luyện kim đen (gang, thép – gốc sắt Fe); Luyện kim màu (nhôm Al, đồng Cu, chì, kẽm, vàng…).",
+        "**Gia công áp lực:** Dùng ngoại lực ép kim loại biến dạng dẻo (rèn, dập, cán, kéo…).",
+        "**Cán kim loại:** Cho phôi qua các trục quay ngược chiều để giảm tiết diện, tăng chiều dài (sản xuất thép thanh, ray, ống dài vô hạn).",
+        "**Đúc kim loại:** Nấu chảy rót vào lòng khuôn để tạo sản phẩm hình thù phức tạp, rỗng bên trong."
+      ]}
+    ],
+    items: [
+      { text: "Công nghệ luyện kim đen là công nghệ tạo ra các kim loại như nhôm, đồng, vàng, chì, kẽm.", ans: false,
+        ex: "Đó là công nghệ luyện kim màu; luyện kim đen chỉ tạo ra gang và thép." },
+      { text: "Công nghệ gia công áp lực là công nghệ dựa vào tính dẻo của kim loại, dùng ngoại lực của thiết bị làm cho kim loại biến dạng theo hình dáng yêu cầu.", ans: true,
+        ex: "Định nghĩa chuẩn về gia công áp lực." },
+      { text: "Khi muốn chế tạo các sản phẩm dạng thỏi hoặc ống có chiều dài không hạn chế, người ta thường ứng dụng công nghệ cán kim loại.", ans: true,
+        ex: "Công nghệ cán/kéo kim loại chuyên dụng để tạo phôi thỏi, dây và ống dài liên tục." },
+      { text: "Để tạo ra một bức tượng đồng có hình dáng phức tạp nhằm phục vụ cho mục đích trang trí mĩ thuật, công nghệ đúc là phương pháp chế tạo phù hợp nhất.", ans: true,
+        ex: "Đúc rót kim loại lỏng vào khuôn là phương pháp tối ưu để tạo chi tiết mỹ thuật phức tạp." }
+    ]
+  },
+  {
+    context: "Cho các phát biểu sau trong lĩnh vực công nghệ phổ biến. Em hãy cho biết nhận định nào là Đúng, nhận định nào là Sai?",
+    specs: [
+      { type: "list", title: "Dữ kiện kiến thức", items: [
+        "**Công nghệ điện – quang:** Biến đổi điện năng thành quang năng (ánh sáng).",
+        "**Công nghệ điện – cơ:** Biến đổi điện năng thành cơ năng (động cơ điện dạng quay như quạt, bơm, máy giặt; hoặc dạng tịnh tiến như solenoid, thang máy ray đẩy).",
+        "**Tai nghe không dây Bluetooth:** Ứng dụng công nghệ truyền thông không dây tầm ngắn."
+      ]}
+    ],
+    items: [
+      { text: "Công nghệ điện – quang là công nghệ biến đổi điện năng thành nhiệt năng.", ans: false,
+        ex: "Điện – quang biến đổi điện năng thành quang năng (ánh sáng); biến đổi thành nhiệt năng là công nghệ nhiệt điện/nhiệt trở." },
+      { text: "Căn cứ theo dạng chuyển động đầu ra, công nghệ biến đổi năng lượng điện – cơ được chia thành hai nhóm là dạng quay và dạng tịnh tiến.", ans: true,
+        ex: "Phân loại chuẩn theo chuyển động cơ học đầu ra." },
+      { text: "Động cơ trong quạt điện và máy bơm nước trong gia đình là những sản phẩm ứng dụng công nghệ điện – cơ ở dạng chuyển động quay.", ans: true,
+        ex: "Rotor trong quạt và máy bơm tạo chuyển động quay tròn." },
+      { text: "Việc kết nối và truyền tải âm thanh giữa điện thoại thông minh và tai nghe không dây ở khoảng cách gần là ví dụ điển hình của việc ứng dụng công nghệ điều khiển và tự động hóa.", ans: false,
+        ex: "Đây là ứng dụng của công nghệ truyền thông không dây (Bluetooth), không phải công nghệ điều khiển và tự động hóa." }
+    ]
+  },
+  {
+    context: "Cho các phát biểu sau đây về một số công nghệ mới. Em hãy cho biết nhận định nào là Đúng, nhận định nào là Sai?",
+    specs: [
+      { type: "list", title: "Dữ kiện các công nghệ mới", items: [
+        "**Công nghệ Nano:** Thao tác vật liệu ở kích thước từ 1 đến 100 nm (nano mét). Hạt nano bạc có tính kháng khuẩn cao ứng dụng trong dệt may.",
+        "**Hệ CAD/CAM/CNC:** CAD = Thiết kế hình học 2D/3D; CAM = Lập quy trình công nghệ và sinh mã G-code gia công; CNC = Máy công cụ điều khiển số tự động.",
+        "**Công nghệ In 3D:** Chế tạo đắp lớp tuần tự từng lớp vật liệu chồng lên nhau."
+      ]}
+    ],
+    items: [
+      { text: "Công nghệ nano là công nghệ phân tích, chế tạo và ứng dụng các vật liệu có cấu trúc nano (thường có kích thước từ 1 đến 100 nano mét).", ans: true,
+        ex: "Định nghĩa chuẩn xác về công nghệ nano." },
+      { text: "Trong hệ thống công nghệ CAD/CAM/CNC, phần mềm CAD được sử dụng để lập quy trình công nghệ gia công chi tiết cho sản phẩm.", ans: false,
+        ex: "CAD dùng để thiết kế bản vẽ hình học; phần mềm CAM mới dùng để lập quy trình công nghệ gia công." },
+      { text: "Việc đưa các hạt nano bạc siêu nhỏ vào sợi vải để thu hút và tiêu diệt vi khuẩn, giúp quần áo có khả năng kháng khuẩn, là một ứng dụng của công nghệ nano trong lĩnh vực may mặc.", ans: true,
+        ex: "Ứng dụng nano bạc kháng khuẩn nổi tiếng trong công nghiệp may mặc." },
+      { text: "Để tạo ra một mô hình bằng cách đắp chồng các lớp vật liệu lên nhau một cách tuần tự từ mô hình thiết kế, người ta đang ứng dụng nguyên lí của công nghệ CAD/CAM/CNC.", ans: false,
+        ex: "Đó là nguyên lý của công nghệ In 3D (Additive Manufacturing)." }
+    ]
+  },
+  {
+    context: "Cho các phát biểu sau đây về một số công nghệ mới. Em hãy cho biết nhận định nào là Đúng, nhận định nào là Sai?",
+    specs: [
+      { type: "list", title: "Dữ kiện công nghệ 4.0", items: [
+        "**Trí tuệ nhân tạo (AI):** Mô phỏng năng lực trí tuệ con người (học hỏi, suy luận, ra quyết định).",
+        "**Internet vạn vật (IoT):** Mạng lưới vạn vật kết nối internet thu thập và trao đổi dữ liệu (nhà thông minh, giám sát môi trường từ xa qua smartphone).",
+        "**Năng lượng tái tạo:** Pin mặt trời, tuabin gió, thủy điện nhỏ…",
+        "**Robot thông minh:** Thiết bị cơ điện tử tự hành có AI xử lý tình huống linh hoạt."
+      ]}
+    ],
+    items: [
+      { text: "Công nghệ trí tuệ nhân tạo (AI) là công nghệ mô phỏng các hoạt động trí tuệ của con người bằng máy móc, đặc biệt là các hệ thống máy tính.", ans: true,
+        ex: "Định nghĩa chuẩn mực về AI." },
+      { text: "Công nghệ Internet vạn vật (IoT) là công nghệ kết nối, thu thập và trao đổi dữ liệu với nhau giữa các máy tính, máy móc, thiết bị kĩ thuật số và cả con người thông qua môi trường internet.", ans: true,
+        ex: "Định nghĩa chuẩn mực về IoT." },
+      { text: "Việc gia đình lắp đặt hệ thống các tấm pin mặt trời trên mái nhà để hấp thụ quang năng và sản xuất ra dòng điện sinh hoạt là một giải pháp ứng dụng công nghệ năng lượng tái tạo.", ans: true,
+        ex: "Pin quang điện mặt trời là ứng dụng tiêu biểu của năng lượng tái tạo." },
+      { text: "Một hệ thống cảm biến đo nhiệt độ phòng có khả năng tự động gửi thông tin qua mạng internet đến điện thoại để người dùng theo dõi và điều khiển điều hòa từ xa là ứng dụng đặc trưng của công nghệ Robot thông minh.", ans: false,
+        ex: "Đây là ứng dụng đặc trưng của công nghệ Internet vạn vật (IoT) trong hệ thống nhà thông minh (Smart Home), không phải của Robot thông minh." }
+    ]
+  }
+];
+
+/* =========================================================
+   TAB 1 — TRẮC NGHIỆM 4 LỰA CHỌN
+   ========================================================= */
+const mcCard      = document.getElementById("mcCard");
+const mcDone      = document.getElementById("mcDone");
+const mcCounter   = document.getElementById("mcCounter");
+const mcScoreEl   = document.getElementById("mcScore");
+const mcBar       = document.getElementById("mcBar");
+const mcQuestion  = document.getElementById("mcQuestion");
+const mcNoteWrap  = document.getElementById("mcNoteWrap");
+const mcOptions   = document.getElementById("mcOptions");
+const mcFeedback  = document.getElementById("mcFeedback");
+const mcNextBtn   = document.getElementById("mcNext");
+const mcShuffleBtn= document.getElementById("mcShuffle");
+const mcRestartBtn= document.getElementById("mcRestart");
+const mcDoneText  = document.getElementById("mcDoneText");
+
+let mcOrder = quizData.map(function (_, i) { return i; });
+let mcPos = 0;
+let mcAnswered = false;
+let mcRight = 0;
+let mcWrong = 0;
+
+function renderMC() {
+  if (mcPos >= mcOrder.length) {
+    mcCard.style.display = "none";
+    mcDone.style.display = "block";
+    mcDoneText.textContent =
+      "Bạn trả lời đúng " + mcRight + "/" + (mcRight + mcWrong) +
+      " câu đã làm (tổng " + mcOrder.length + " câu).";
+    return;
+  }
+  mcCard.style.display = "block";
+  mcDone.style.display = "none";
+
+  const q = quizData[mcOrder[mcPos]];
+  mcAnswered = false;
+
+  mcCounter.textContent = "Câu " + (mcPos + 1) + "/" + mcOrder.length;
+  mcScoreEl.textContent = "Đúng: " + mcRight + " · Sai: " + mcWrong;
+  mcBar.style.width = ((mcPos + 1) / mcOrder.length * 100) + "%";
+
+  mcQuestion.textContent = q.q;
+  mcNoteWrap.innerHTML = q.note
+    ? '<div class="qnote">' + escapeHTML(q.note) + "</div>" : "";
+
+  mcFeedback.className = "feedback";
+  mcFeedback.textContent = "";
+
+  mcOptions.innerHTML = "";
+  q.options.forEach(function (opt, i) {
+    const btn = document.createElement("button");
+    btn.className = "option";
+
+    const letter = document.createElement("span");
+    letter.className = "letter";
+    letter.textContent = LETTERS[i];
+
+    const text = document.createElement("span");
+    text.className = "otext";
+    text.textContent = opt;
+
+    btn.appendChild(letter);
+    btn.appendChild(text);
+    btn.addEventListener("click", function () { chooseMC(i); });
+    mcOptions.appendChild(btn);
+  });
+}
+
+function chooseMC(chosenIdx) {
+  if (mcAnswered) return;
+  mcAnswered = true;
+
+  const q = quizData[mcOrder[mcPos]];
+  const btns = mcOptions.querySelectorAll(".option");
+
+  btns.forEach(function (b, idx) {
+    b.classList.add("disabled");
+    if (idx === q.answer) b.classList.add("correct");
+  });
+
+  if (chosenIdx === q.answer) {
+    mcRight++;
+    mcFeedback.className = "feedback show ok";
+    mcFeedback.textContent = "✅ Chính xác!";
+  } else {
+    mcWrong++;
+    btns[chosenIdx].classList.add("wrong");
+    mcFeedback.className = "feedback show no";
+    mcFeedback.innerHTML =
+      "❌ Chưa đúng. Đáp án đúng là <b>" + LETTERS[q.answer] + ". " +
+      escapeHTML(q.options[q.answer]) + "</b>";
+  }
+  mcScoreEl.textContent = "Đúng: " + mcRight + " · Sai: " + mcWrong;
+}
+
+mcNextBtn.addEventListener("click", function () {
+  mcPos++;
+  renderMC();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+mcShuffleBtn.addEventListener("click", function () {
+  shuffleArray(mcOrder);
+  mcPos = 0; mcRight = 0; mcWrong = 0;
+  renderMC();
+});
+
+mcRestartBtn.addEventListener("click", function () {
+  mcPos = 0; mcRight = 0; mcWrong = 0;
+  renderMC();
+});
+
+/* =========================================================
+   TAB 2 — ĐÚNG / SAI
+   ========================================================= */
+const tfCard     = document.getElementById("tfCard");
+const tfDone     = document.getElementById("tfDone");
+const tfCounter  = document.getElementById("tfCounter");
+const tfBar      = document.getElementById("tfBar");
+const tfContextEl= document.getElementById("tfContext");
+const tfSpecsEl  = document.getElementById("tfSpecs");
+const tfItemsEl  = document.getElementById("tfItems");
+const tfNextBtn  = document.getElementById("tfNext");
+const tfRestartBtn  = document.getElementById("tfRestart");
+const tfRestartBtn2 = document.getElementById("tfRestart2");
+
+let tfPos = 0;
+let tfState = {};
+
+function renderTF() {
+  if (tfPos >= tfData.length) {
+    tfCard.style.display = "none";
+    tfDone.style.display = "block";
+    return;
+  }
+  tfCard.style.display = "block";
+  tfDone.style.display = "none";
+
+  const q = tfData[tfPos];
+
+  tfCounter.textContent = "Câu " + (tfPos + 1) + "/" + tfData.length;
+  tfBar.style.width = ((tfPos + 1) / tfData.length * 100) + "%";
+  tfContextEl.textContent = q.context;
+
+  tfSpecsEl.innerHTML = renderSpecs(q.specs, false);
+  tfItemsEl.innerHTML = "";
+
+  q.items.forEach(function (item, i) {
+    const key = tfPos + "-" + i;
+    const chosen = tfState[key];
+    const answered = chosen !== undefined;
+
+    const wrap = document.createElement("div");
+    wrap.className = "tf-item";
+    if (answered) wrap.classList.add(chosen === item.ans ? "ok" : "no");
+
+    /* Head: label + text */
+    const head = document.createElement("div");
+    head.className = "tf-head";
+
+    const label = document.createElement("span");
+    label.className = "tf-label";
+    label.textContent = "abcd"[i];
+
+    const textEl = document.createElement("span");
+    textEl.className = "tf-text";
+    textEl.textContent = item.text;
+
+    head.appendChild(label);
+    head.appendChild(textEl);
+    wrap.appendChild(head);
+
+    /* Buttons */
+    const btns = document.createElement("div");
+    btns.className = "tf-btns";
+
+    const btnTrue = document.createElement("button");
+    btnTrue.className = "tf-btn";
+    btnTrue.textContent = "Đúng";
+
+    const btnFalse = document.createElement("button");
+    btnFalse.className = "tf-btn";
+    btnFalse.textContent = "Sai";
+
+    if (answered) {
+      btns.classList.add("locked");
+      btnTrue.disabled = true;
+      btnFalse.disabled = true;
+      (item.ans ? btnTrue : btnFalse).classList.add("correct");
+      if (chosen !== item.ans) {
+        (chosen ? btnTrue : btnFalse).classList.add("wrong");
+      }
+    } else {
+      btnTrue.addEventListener("click", function () { tfState[key] = true;  renderTF(); });
+      btnFalse.addEventListener("click", function () { tfState[key] = false; renderTF(); });
+    }
+
+    btns.appendChild(btnTrue);
+    btns.appendChild(btnFalse);
+    wrap.appendChild(btns);
+
+    /* Explanation */
+    if (answered) {
+      const ex = document.createElement("div");
+      ex.className = "tf-explain show";
+      ex.innerHTML =
+        '<span class="verdict ' + (item.ans ? "ok" : "no") + '">Đáp án: ' +
+        (item.ans ? "ĐÚNG" : "SAI") + "</span> — " + escapeHTML(item.ex);
+      wrap.appendChild(ex);
+    }
+
+    tfItemsEl.appendChild(wrap);
+  });
+}
+
+tfNextBtn.addEventListener("click", function () {
+  tfPos++;
+  renderTF();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+function resetTF() {
+  tfPos = 0;
+  tfState = {};
+  renderTF();
+}
+tfRestartBtn.addEventListener("click", resetTF);
+tfRestartBtn2.addEventListener("click", resetTF);
+
+/* =========================================================
+   TAB 3 — BẢNG TRA CỨU
+   ========================================================= */
+function buildLookup() {
+  const lkMC = document.getElementById("lkMC");
+  quizData.forEach(function (q, i) {
+    let html = '<div class="lk-item">' +
+      '<div class="lk-q"><span class="lk-num">' + (i + 1) + '</span><span>' +
+      escapeHTML(q.q) + '</span></div>';
+    if (q.note) {
+      html += '<div class="lk-note">' + escapeHTML(q.note) + '</div>';
+    }
+    html += '<div class="lk-a">' + LETTERS[q.answer] + '. ' +
+      escapeHTML(q.options[q.answer]) + '</div></div>';
+    lkMC.insertAdjacentHTML("beforeend", html);
+  });
+
+  const lkTF = document.getElementById("lkTF");
+  tfData.forEach(function (q, i) {
+    let html = '<div class="lk-item">' +
+      '<div class="lk-q"><span class="lk-num">' + (i + 1) +
+      '</span><span>Câu ' + (i + 1) + '</span></div>' +
+      '<div class="lk-tf-ctx">' + escapeHTML(q.context) + '</div>';
+
+    if (q.specs && q.specs.length) {
+      html += '<div class="lk-specs">' + renderSpecs(q.specs, true) + '</div>';
+    }
+
+    q.items.forEach(function (it, j) {
+      html += '<div class="lk-tf-row">' +
+        '<span class="tag ' + (it.ans ? "ok" : "no") + '">' +
+        (it.ans ? "ĐÚNG" : "SAI") + '</span>' +
+        '<span>' + "abcd"[j] + ') ' + escapeHTML(it.text) + '</span></div>' +
+        '<div class="lk-tf-ex">💡 ' + escapeHTML(it.ex) + '</div>';
+    });
+
+    html += '</div>';
+    lkTF.insertAdjacentHTML("beforeend", html);
+  });
+}
+
+/* =========================================================
+   KHỞI CHẠY
+   ========================================================= */
+renderMC();
+renderTF();
+buildLookup();
+</script>
+</body>
+</html>
